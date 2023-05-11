@@ -10,8 +10,6 @@ import "hardhat/console.sol";
 
 contract feeModel is Initializable{
 
-    address payable _minterAddress;
-    uint256 _minterRatio;
 
     address payable _foundationAddress;
     uint256 _foundationRatio;
@@ -20,36 +18,39 @@ contract feeModel is Initializable{
     uint256 _dexRatio;
 
     uint256 _ratioMax;
-    address private _adminAddress;
+    address private _ownerAddress;
 
     using SafeMath for uint;
 
     /**
-     * @dev onlyAdmin modifier for only admin
+     * @dev onlyOwner modifier for only admin
      */
-    modifier onlyAdmin() {
-        require(_adminAddress == msg.sender, "only owner can do the task");
+    modifier onlyOwner() {
+        require(_ownerAddress == msg.sender, "only owner can do the task");
         _;
     }
 
+    modifier onlyFoundation() {
+        require(_foundationAddress == msg.sender, "only foundation can do the task");
+        _;
+    }
+
+    modifier onlyDex() {
+        require(_dexAddress == msg.sender, "only dex can do the task");
+        _;
+    }
 
     /**
      * @dev __FeeModel_init
      */
     function __FeeModel_init(
-        address payable minterAddress,
-        uint256 minterRatio,
         address payable dexAddress,
         uint256 dexRatio,
         address payable foundationAddress,
         uint256 foundationRatio,
         uint256 ratioMax
     ) public initializer{
-          
-
-        _minterAddress = minterAddress;
-        _minterRatio = minterRatio;
-
+        
         _dexAddress = dexAddress;
         _dexRatio = dexRatio;
 
@@ -57,21 +58,15 @@ contract feeModel is Initializable{
         _foundationRatio = foundationRatio;
 
         _ratioMax = ratioMax;
-        _adminAddress = msg.sender;
+        _ownerAddress = msg.sender;
         
     }
-
-
 
     receive() external payable {
 
         console.log("receive ...%d",msg.value);
-        uint256 minterFee;
         uint256 dexFee;
         uint256 foundationFee;
-
-        minterFee = msg.value.mul(_minterRatio).div(_ratioMax);
-        sendViaCall(_minterAddress,minterFee);
         
         dexFee = msg.value.mul(_dexRatio).div(_ratioMax);
         sendViaCall(_dexAddress,dexFee);
@@ -96,11 +91,51 @@ contract feeModel is Initializable{
 
     }
 
-    function getAllBalances() public view returns (uint,uint,uint) {
-        return (_minterAddress.balance,_foundationAddress.balance,_dexAddress.balance);
+    function changeOwner(address newOwnerAddress) public onlyOwner{
+        _ownerAddress = newOwnerAddress;
     }
 
+    function changeFoundation(address payable newFoundationAddress) public onlyFoundation{
+        _foundationAddress = newFoundationAddress;
+    }
 
+    function changeDex(address payable newDexAddress) public onlyDex{
+        _dexAddress = newDexAddress;
+    }
+
+    function changeRatio(
+        uint256 dexRatio,
+        uint256 foundationRatio
+    ) public onlyOwner{
+
+        _dexRatio = dexRatio;
+        _foundationRatio = foundationRatio;
+    
+    }
+
+    function getAllBalances() public view returns (uint,uint) {
+        return (_dexAddress.balance,_foundationAddress.balance);
+    }
+
+    function getOwnerAddress() public view returns (address) {
+        return _ownerAddress;
+    }
+
+    function getFoundationAddress() public view returns (address) {
+        return _foundationAddress;
+    }
+
+    function getFoundationRatio() public view returns (uint) {
+        return _foundationRatio;
+    }
+
+    function getDexAddress() public view returns (address) {
+        return _dexAddress;
+    }
+
+    function getDexRatio() public view returns (uint) {
+        return _dexRatio;
+    }
 
 }
 
