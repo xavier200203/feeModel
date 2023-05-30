@@ -32,6 +32,7 @@ const main = async () => {
 
 
     await writeConfig(0,0,"FEE_MODEL_ADDRESS",feeModelContract.address);
+    console.log("fee Model Contract address : ",feeModelContract.address);
 
 
 }

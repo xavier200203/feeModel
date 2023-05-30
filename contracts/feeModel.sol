@@ -58,7 +58,7 @@ contract feeModel is Initializable{
 //        revert("don't send value");
     }
 
-    function divideMoney() public onlyOwner {
+    function divideMoney() external{
         uint256 dexFee;
         uint256 foundationFee;
         uint totalPercent = 100;
