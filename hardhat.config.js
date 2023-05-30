@@ -11,7 +11,9 @@ module.exports = {
     testnet: {
         url: `https://api-testnet.elastos.io/esc`,
         accounts: [
-          "0x9aede013637152836b14b423dabef30c9b880ea550dbec132183ace7ca6177ed"
+          "0x9aede013637152836b14b423dabef30c9b880ea550dbec132183ace7ca6177ed",
+          "0x54e6e01600b66af71b9827429ff32599383d7694684bc09e26c3b13d95980650",
+          "0xcb93f47f4ae6e2ee722517f3a2d3e7f55a5074f430c9860bcfe1d6d172492ed0"
         ]
     },
     local: {
