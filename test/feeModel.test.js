@@ -24,9 +24,8 @@ describe(`feeModel Test `, () => {
     feeModelContract = await upgrades.deployProxy(
       feeModelFactory,
       [
-          dex.address,6000,
-          foundation.address,4000,
-          10000,
+          dex.address,40,
+          foundation.address,60,
       ],
       {
           initializer: "__FeeModel_init",
@@ -45,17 +44,26 @@ describe(`feeModel Test `, () => {
       const receipt = await web3.eth.sendTransaction({
         from: admin.address,
         to: feeModelContract.address,
-        value: web3.utils.toWei('1', 'ether'),
+        value: web3.utils.toWei('1.5', 'ether'),
       });
 
       console.log("xxl receipt status : ",receipt.status);
 
-      const balanceObj = await feeModelContract.getAllBalances();
+      let balance = await web3.eth.getBalance(feeModelContract.address);
+      console.log("balance : ",balance);
+      let balanceObj = await feeModelContract.getAllBalances();
+      console.log(balanceObj);
+
+      let tx = await feeModelContract.divideMoney();
+      console.log("divideMoney : ",tx.hash);
+
+      balanceObj = await feeModelContract.getAllBalances();
       console.log(balanceObj);
 
       expect(balanceObj[0].toString()).to.equal("600000000000000000");
-      expect(balanceObj[1].toString()).to.equal("400000000000000000");
-      
+      expect(balanceObj[1].toString()).to.equal("900000000000000000");
+      balance = await web3.eth.getBalance(feeModelContract.address);
+      console.log("balance : ",balance);
 
     } catch (e) {
       console.log("error ");
@@ -64,14 +72,12 @@ describe(`feeModel Test `, () => {
 
   }),
 
-
   it(`change radio `, async () => {
     try{
 
-      // let balance = await ebtcContract.balanceOf(alice.address);
       console.log("radio", feeModelContract.address)
 
-      await feeModelContract.changeRatio(2000,8000);
+      await feeModelContract.changeRatio(20,80);
 
       const receipt = await web3.eth.sendTransaction({
         from: admin.address,
@@ -81,20 +87,22 @@ describe(`feeModel Test `, () => {
 
       console.log("xxl receipt status : ",receipt.status);
 
+      let tx = await feeModelContract.divideMoney();
+      console.log("divideMoney : ",tx.hash);
+
       const balanceObj = await feeModelContract.getAllBalances();
       console.log(balanceObj);
 
+      expect(balanceObj[0].toString()).to.equal("800000000000000000");
+      expect(balanceObj[1].toString()).to.equal("1700000000000000000");
 
-      expect(balanceObj[0].toString()).to.equal("200000000000000000");
-      expect(balanceObj[1].toString()).to.equal("800000000000000000");
-      
 
     } catch (e) {
       console.log("error ");
       console.log(e);
     }
 
-  }),
+  })
 
   it(`change address `, async () => {
     try{
@@ -105,7 +113,7 @@ describe(`feeModel Test `, () => {
       let ownerAddress = await feeModelContract.getOwnerAddress();
 
       expect(ownerAddress).to.equal(alice.address);
-      
+
       await feeModelContract.connect(foundation).changeFoundation(alice.address);
       let foundationAddress = await feeModelContract.getOwnerAddress();
 

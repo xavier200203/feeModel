@@ -1,6 +1,6 @@
 
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
@@ -17,7 +17,6 @@ contract feeModel is Initializable{
     address payable _dexAddress;
     uint256 _dexRatio;
 
-    uint256 _ratioMax;
     address private _ownerAddress;
 
     using SafeMath for uint;
@@ -47,39 +46,35 @@ contract feeModel is Initializable{
         address payable dexAddress,
         uint256 dexRatio,
         address payable foundationAddress,
-        uint256 foundationRatio,
-        uint256 ratioMax
+        uint256 foundationRatio
     ) public initializer{
-        
         _dexAddress = dexAddress;
-        _dexRatio = dexRatio;
-
         _foundationAddress = foundationAddress;
-        _foundationRatio = foundationRatio;
-
-        _ratioMax = ratioMax;
         _ownerAddress = msg.sender;
-        
+        changeRatio(dexRatio, foundationRatio);
     }
 
     receive() external payable {
-
-        console.log("receive ...%d",msg.value);
-        uint256 dexFee;
-        uint256 foundationFee;
-        
-        dexFee = msg.value.mul(_dexRatio).div(_ratioMax);
-        sendViaCall(_dexAddress,dexFee);
-
-        foundationFee = msg.value.mul(_foundationRatio).div(_ratioMax);
-        sendViaCall(_foundationAddress,foundationFee);
-
+//        revert("don't send value");
     }
 
-    function sendViaCall(address payable to,uint256 value) public payable {
+    function divideMoney() public onlyOwner {
+        uint256 dexFee;
+        uint256 foundationFee;
+        uint totalPercent = 100;
+        uint balance = address(this).balance;
+
+        dexFee = balance.mul(_dexRatio).div(totalPercent);
+        sendViaCall(_dexAddress,dexFee);
+
+        foundationFee = balance.mul(_foundationRatio).div(totalPercent);
+        sendViaCall(_foundationAddress,foundationFee);
+    }
+
+    function sendViaCall(address payable to,uint256 value) private {
         // Call returns a boolean value indicating success or failure.
         // This is the current recommended method to use.
-        (bool _sent, bytes memory _data) = to.call{value: value}("");
+        (bool _sent, ) = to.call{value: value}("");
         require(_sent, "Failed to send Coin");
     }
 
@@ -107,10 +102,9 @@ contract feeModel is Initializable{
         uint256 dexRatio,
         uint256 foundationRatio
     ) public onlyOwner{
-
+         require(dexRatio.add(foundationRatio) == 100, "invalidRatio");
         _dexRatio = dexRatio;
         _foundationRatio = foundationRatio;
-    
     }
 
     function getAllBalances() public view returns (uint,uint) {
@@ -132,11 +126,6 @@ contract feeModel is Initializable{
     function getDexAddress() public view returns (address) {
         return _dexAddress;
     }
-
-    function getDexRatio() public view returns (uint) {
-        return _dexRatio;
-    }
-
 }
 
 

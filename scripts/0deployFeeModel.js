@@ -20,9 +20,8 @@ const main = async () => {
     feeModelContract = await upgrades.deployProxy(
         feeModelFactory,
         [
-            dex.address,6000,
-            foundation.address,4000,
-            10000,
+            dex.address,40,
+            foundation.address,60
         ],
         {
             initializer: "__FeeModel_init",
@@ -34,8 +33,6 @@ const main = async () => {
 
     await writeConfig(0,0,"FEE_MODEL_ADDRESS",feeModelContract.address);
 
-
-    
 
 }
 
